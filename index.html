@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>PalRyz Access Manager</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        :root {
+            --primary: #8b5cf6;
+            --primary-dark: #7c3aed;
+            --primary-light: #a78bfa;
+            --bg-dark: #0f0d1a;
+            --bg-card: #1a1625;
+            --bg-input: #252136;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #3730a3;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(236, 72, 153, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(59, 130, 246, 0.08) 0%, transparent 40%);
+            animation: bgMove 20s ease-in-out infinite;
+        }
+
+        .bg-animation::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0);
+            background-size: 40px 40px;
+        }
+
+        @keyframes bgMove {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(2%, 2%) rotate(1deg); }
+            66% { transform: translate(-1%, 1%) rotate(-1deg); }
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-dark);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loading-logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 30px;
+        }
+
+        .loading-logo svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.5));
+        }
+
+        .loader-container {
+            position: relative;
+            width: 60px;
+            height: 60px;
+        }
+
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 3px solid rgba(139, 92, 246, 0.2);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loader-ring {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            width: 80px;
+            height: 80px;
+            border: 2px solid transparent;
+            border-bottom-color: var(--info);
+            border-radius: 50%;
+            animation: spin 1.5s linear infinite reverse;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 24px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* Login Page */
+        .login-page {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 40px 32px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                        0 0 0 1px rgba(139, 92, 246, 0.1);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .login-logo {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 16px;
+        }
+
+        .login-logo svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 4px 15px rgba(139, 92, 246, 0.4));
+        }
+
+        .login-header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff, var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .login-header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 6px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid transparent;
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 15px;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .input-wrapper input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+        }
+
+        .input-wrapper input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .login-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 15px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .login-btn .btn-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        .login-btn.loading .btn-spinner {
+            display: block;
+        }
+
+        .login-btn.loading .btn-text {
+            display: none;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            color: var(--danger);
+            font-size: 13px;
+            display: none;
+            animation: shake 0.5s ease;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* Main Dashboard */
+        .dashboard {
+            display: none;
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        .dashboard.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+        }
+
+        .title-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            width: 48px;
+            height: 48px;
+            flex-shrink: 0;
+        }
+
+        .logo svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 4px 10px rgba(139, 92, 246, 0.3));
+        }
+
+        .title-section h1 {
+            font-size: 20px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff, var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .owner-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-card);
+            padding: 8px 14px;
+            border-radius: 50px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            flex-wrap: wrap;
+        }
+
+        .owner-info button {
+            background: var(--primary);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .owner-info button:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Config Card */
+        .config-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .config-card h3 {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary-light);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .config-grid input {
+            background: var(--bg-input);
+            border: 1px solid transparent;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 13px;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .config-grid input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .config-grid input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .config-card p {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 10px;
+        }
+
+        .config-card a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        /* Stats Row */
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .total-users {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            padding: 10px 16px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+        }
+
+        .add-user-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            background: var(--bg-card);
+            padding: 12px 16px;
+            border-radius: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .add-user-form input {
+            background: var(--bg-input);
+            border: 1px solid transparent;
+            padding: 10px 14px;
+            border-radius: 8px;
+            color: white;
+            font-size: 13px;
+            min-width: 120px;
+            flex: 1;
+            transition: all 0.3s ease;
+        }
+
+        .add-user-form input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .add-user-form input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .btn {
+            background: var(--bg-input);
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-cloud {
+            background: linear-gradient(135deg, var(--info), #2563eb);
+        }
+
+        .btn-cloud:hover {
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+        }
+
+        .btn-outline:hover {
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        /* Table */
+        .table-wrapper {
+            background: var(--bg-card);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            border: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .table-header h3 {
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-box {
+            background: var(--bg-input);
+            border: 1px solid transparent;
+            padding: 8px 14px;
+            border-radius: 8px;
+            color: white;
+            font-size: 13px;
+            width: 200px;
+            transition: all 0.3s ease;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .search-box::placeholder {
+            color: var(--text-muted);
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 500px;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px 16px;
+            background: rgba(139, 92, 246, 0.05);
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.05);
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(139, 92, 246, 0.03);
+        }
+
+        .key-cell {
+            font-family: 'Courier New', monospace;
+            background: var(--bg-input);
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 12px;
+            display: inline-block;
+        }
+
+        .date-cell {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 6px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .icon-btn:hover {
+            background: var(--bg-input);
+        }
+
+        .edit-btn { color: var(--warning); }
+        .delete-btn { color: var(--danger); }
+        .copy-key { color: var(--info); }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state .icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        /* Footer Tools */
+        .footer-tools {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .footer-tools .btn-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .storage-info {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 16px;
+            opacity: 0.7;
+            padding-bottom: 20px;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-width: calc(100vw - 40px);
+        }
+
+        .toast {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            padding: 12px 16px;
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            animation: slideIn 0.3s ease;
+            border-left: 4px solid var(--primary);
+            word-break: break-word;
+        }
+
+        .toast.success { border-left-color: var(--success); }
+        .toast.error { border-left-color: var(--danger); }
+        .toast.warning { border-left-color: var(--warning); }
+        .toast.info { border-left-color: var(--info); }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideOut {
+            to {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal h2 {
+            font-size: 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal .form-group {
+            margin-bottom: 12px;
+        }
+
+        .modal input {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid transparent;
+            border-radius: 8px;
+            padding: 12px 14px;
+            color: white;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .modal input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .modal-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .modal-btns .btn {
+            flex: 1;
+            justify-content: center;
+        }
+
+        /* Responsive - Mobile */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .title-section h1 {
+                font-size: 18px;
+            }
+
+            .owner-info {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .config-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .total-users {
+                justify-content: center;
+            }
+
+            .add-user-form {
+                flex-direction: column;
+            }
+
+            .add-user-form input {
+                width: 100%;
+                min-width: unset;
+            }
+
+            .add-user-form .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .table-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .footer-tools {
+                flex-direction: column;
+            }
+
+            .footer-tools .btn-group {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .footer-tools .btn-group .btn {
+                flex: 1;
+                justify-content: center;
+            }
+
+            .footer-tools .btn-danger {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .login-card {
+                padding: 28px 20px;
+            }
+
+            .login-logo {
+                width: 64px;
+                height: 64px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .dashboard {
+                padding: 12px;
+            }
+
+            .container {
+                padding: 0;
+            }
+
+            .config-card,
+            .table-wrapper,
+            .stats-row {
+                border-radius: 12px;
+            }
+
+            .table-header {
+                padding: 12px;
+            }
+
+            th, td {
+                padding: 10px 12px;
+            }
+
+            .action-buttons {
+                flex-direction: row;
+            }
+
+            .toast-container {
+                bottom: 10px;
+                right: 10px;
+                left: 10px;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--bg-input);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+<!-- Loading Screen -->
+<div class="loading-screen" id="loadingScreen">
+    <div class="loading-logo">
+        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="logoGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#8b5cf6"/>
+                    <stop offset="100%" style="stop-color:#7c3aed"/>
+                </linearGradient>
+                <linearGradient id="logoGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#a78bfa"/>
+                    <stop offset="100%" style="stop-color:#8b5cf6"/>
+                </linearGradient>
+                <filter id="glow">
+                    <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                    <feMerge>
+                        <feMergeNode in="coloredBlur"/>
+                        <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                </filter>
+            </defs>
+            <path d="M50 5L10 20V45C10 68 28 88 50 95C72 88 90 68 90 45V20L50 5Z" fill="url(#logoGrad1)" filter="url(#glow)"/>
+            <path d="M50 12L18 24V45C18 64 32 81 50 87C68 81 82 64 82 45V24L50 12Z" fill="#1a1625"/>
+            <rect x="35" y="45" width="30" height="25" rx="4" fill="url(#logoGrad2)"/>
+            <path d="M40 45V40C40 33.4 45.4 28 52 28C58.6 28 64 33.4 64 40V45" stroke="url(#logoGrad2)" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <circle cx="52" cy="57" r="4" fill="#1a1625"/>
+            <rect x="50" y="57" width="4" height="8" rx="1" fill="#1a1625"/>
+            <circle cx="25" cy="35" r="2" fill="#a78bfa" opacity="0.6"/>
+            <circle cx="75" cy="35" r="2" fill="#a78bfa" opacity="0.6"/>
+            <circle cx="50" cy="75" r="2" fill="#a78bfa" opacity="0.6"/>
+        </svg>
+    </div>
+    <div class="loader-container">
+        <div class="loader"></div>
+        <div class="loader-ring"></div>
+    </div>
+    <p class="loading-text">Memuat sistem...</p>
+</div>
+
+<!-- Background Animation -->
+<div class="bg-animation"></div>
+
+<!-- Login Page -->
+<div class="login-page" id="loginPage">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="login-logo">
+                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="loginLogoGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#8b5cf6"/>
+                            <stop offset="100%" style="stop-color:#7c3aed"/>
+                        </linearGradient>
+                        <linearGradient id="loginLogoGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#a78bfa"/>
+                            <stop offset="100%" style="stop-color:#8b5cf6"/>
+                        </linearGradient>
+                        <filter id="loginGlow">
+                            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                            <feMerge>
+                                <feMergeNode in="coloredBlur"/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                    </defs>
+                    <path d="M50 5L10 20V45C10 68 28 88 50 95C72 88 90 68 90 45V20L50 5Z" fill="url(#loginLogoGrad1)" filter="url(#loginGlow)"/>
+                    <path d="M50 12L18 24V45C18 64 32 81 50 87C68 81 82 64 82 45V24L50 12Z" fill="#1a1625"/>
+                    <rect x="35" y="45" width="30" height="25" rx="4" fill="url(#loginLogoGrad2)"/>
+                    <path d="M40 45V40C40 33.4 45.4 28 52 28C58.6 28 64 33.4 64 40V45" stroke="url(#loginLogoGrad2)" stroke-width="4" fill="none" stroke-linecap="round"/>
+                    <circle cx="52" cy="57" r="4" fill="#1a1625"/>
+                    <rect x="50" y="57" width="4" height="8" rx="1" fill="#1a1625"/>
+                    <circle cx="25" cy="35" r="2" fill="#a78bfa" opacity="0.6"/>
+                    <circle cx="75" cy="35" r="2" fill="#a78bfa" opacity="0.6"/>
+                    <circle cx="50" cy="75" r="2" fill="#a78bfa" opacity="0.6"/>
+                </svg>
+            </div>
+            <h1>PalRyz Access Manager</h1>
+            <p>Silakan masuk untuk melanjutkan</p>
+        </div>
+        
+        <div class="error-message" id="errorMessage">
+            <span id="errorText">Username atau password salah!</span>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Username</label>
+                <div class="input-wrapper">
+                    <input type="text" id="loginUsername" placeholder="Masukkan username" autocomplete="off" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <div class="input-wrapper">
+                    <input type="password" id="loginPassword" placeholder="Masukkan password" autocomplete="off" required>
+                </div>
+            </div>
+
+            <button type="submit" class="login-btn" id="loginBtn">
+                <span class="btn-text">Masuk</span>
+                <div class="btn-spinner"></div>
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Main Dashboard -->
+<div class="dashboard" id="dashboard">
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="title-section">
+                <div class="logo">
+                    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="dashLogoGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#8b5cf6"/>
+                                <stop offset="100%" style="stop-color:#7c3aed"/>
+                            </linearGradient>
+                            <linearGradient id="dashLogoGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#a78bfa"/>
+                                <stop offset="100%" style="stop-color:#8b5cf6"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M50 5L10 20V45C10 68 28 88 50 95C72 88 90 68 90 45V20L50 5Z" fill="url(#dashLogoGrad1)"/>
+                        <path d="M50 12L18 24V45C18 64 32 81 50 87C68 81 82 64 82 45V24L50 12Z" fill="#1a1625"/>
+                        <rect x="35" y="45" width="30" height="25" rx="4" fill="url(#dashLogoGrad2)"/>
+                        <path d="M40 45V40C40 33.4 45.4 28 52 28C58.6 28 64 33.4 64 40V45" stroke="url(#dashLogoGrad2)" stroke-width="4" fill="none" stroke-linecap="round"/>
+                        <circle cx="52" cy="57" r="4" fill="#1a1625"/>
+                        <rect x="50" y="57" width="4" height="8" rx="1" fill="#1a1625"/>
+                        <circle cx="25" cy="35" r="2" fill="#a78bfa" opacity="0.6"/>
+                        <circle cx="75" cy="35" r="2" fill="#a78bfa" opacity="0.6"/>
+                        <circle cx="50" cy="75" r="2" fill="#a78bfa" opacity="0.6"/>
+                    </svg>
+                </div>
+                <h1>PalRyz · Access Vault</h1>
+            </div>
+            <div class="owner-info">
+                <span>📞</span>
+                <span>+6283117156906</span>
+                <button id="copyOwnerBtn">Salin</button>
+            </div>
+        </div>
+
+        <!-- Config Card -->
+        <div class="config-card">
+            <h3>🔗 Konfigurasi JSONBin (Tersimpan Otomatis)</h3>
+            <div class="config-grid">
+                <input type="text" id="binIdInput" placeholder="Bin ID" value="6a2c1494da38895dfeb52ef2">
+                <input type="text" id="apiKeyInput" placeholder="API Key" value="$2a$10$xSMwCb5yai.NSWkfvxVPv.SdBIq6jsdgWoym1Z9XItqNudWwNOnkS">
+            </div>
+            <p>✅ Konfigurasi JSONBin sudah diatur otomatis. Langsung klik <strong>Sync</strong> untuk upload data.</p>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="stats-row">
+            <div class="total-users" id="totalUsersDisplay">
+                <span>👥</span>
+                <span>Total: 0</span>
+            </div>
+            <div class="add-user-form">
+                <input type="text" id="newUsername" placeholder="Username" autocomplete="off">
+                <input type="text" id="newKey" placeholder="Access Key">
+                <button class="btn btn-primary" id="addUserBtn">+ Tambah</button>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrapper">
+            <div class="table-header">
+                <h3>📋 Daftar User</h3>
+                <input type="text" id="searchInput" class="search-box" placeholder="🔍 Cari...">
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Access Key</th>
+                            <th>Dibuat</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr>
+                            <td colspan="4" class="empty-state">
+                                <div class="icon">📭</div>
+                                <p>Memuat data...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Footer Tools -->
+        <div class="footer-tools">
+            <div class="btn-group">
+                <button class="btn btn-outline" id="exportJsonBtn">📤 Export</button>
+                <button class="btn btn-outline" id="refreshListBtn">⟳ Refresh</button>
+                <button class="btn btn-cloud" id="syncCloudBtn">☁️ Sync</button>
+            </div>
+            <button class="btn btn-danger" id="logoutBtn">🚪 Logout</button>
+        </div>
+
+        <p class="storage-info">💾 Data tersimpan di localStorage browser</p>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal">
+        <h2>✏️ Edit User</h2>
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="editUsername">
+        </div>
+        <div class="form-group">
+            <label>Access Key (kosong = tidak berubah)</label>
+            <input type="text" id="editKey">
+        </div>
+        <div class="modal-btns">
+            <button class="btn btn-outline" id="cancelEditBtn">Batal</button>
+            <button class="btn btn-primary" id="saveEditBtn">Simpan</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+    // =====================
+    // Configuration
+    // =====================
+    const AUTH_KEY = "PalRyz_Auth";
+    const USERS_KEY = "PalRyz_Users_DB";
+    const CONFIG_KEY = "PalRyz_Config";
+    
+    // Default login credentials
+    const DEFAULT_CREDENTIALS = {
+        username: "admin",
+        password: "palryz2025"
+    };
+
+    // Default JSONBin config
+    const DEFAULT_BIN_ID = "6a2c1494da38895dfeb52ef2";
+    const DEFAULT_API_KEY = "$2a$10$xSMwCb5yai.NSWkfvxVPv.SdBIq6jsdgWoym1Z9XItqNudWwNOnkS";
+
+    // =====================
+    // Loading Animation
+    // =====================
+    function hideLoading() {
+        setTimeout(() => {
+            document.getElementById('loadingScreen').classList.add('hidden');
+        }, 1200);
+    }
+
+    // =====================
+    // Toast Notifications
+    // =====================
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `<span>${message}</span>`;
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease forwards';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // =====================
+    // Authentication
+    // =====================
+    function checkAuth() {
+        const auth = localStorage.getItem(AUTH_KEY);
+        if (auth) {
+            try {
+                const data = JSON.parse(auth);
+                if (data.loggedIn && data.timestamp > Date.now() - 24 * 60 * 60 * 1000) {
+                    return true;
+                }
+            } catch (e) {}
+        }
+        return false;
+    }
+
+    function login(username, password) {
+        if (username === DEFAULT_CREDENTIALS.username && password === DEFAULT_CREDENTIALS.password) {
+            localStorage.setItem(AUTH_KEY, JSON.stringify({
+                loggedIn: true,
+                timestamp: Date.now(),
+                username: username
+            }));
+            return true;
+        }
+        return false;
+    }
+
+    function logout() {
+        localStorage.removeItem(AUTH_KEY);
+        document.getElementById('dashboard').classList.remove('active');
+        document.getElementById('loginPage').style.display = 'flex';
+        showToast('👋 Berhasil logout!', 'info');
+    }
+
+    // =====================
+    // Config Management
+    // =====================
+    function loadConfig() {
+        const stored = localStorage.getItem(CONFIG_KEY);
+        if (stored) {
+            try {
+                const config = JSON.parse(stored);
+                document.getElementById('binIdInput').value = config.binId || DEFAULT_BIN_ID;
+                document.getElementById('apiKeyInput').value = config.apiKey || DEFAULT_API_KEY;
+            } catch (e) {
+                document.getElementById('binIdInput').value = DEFAULT_BIN_ID;
+                document.getElementById('apiKeyInput').value = DEFAULT_API_KEY;
+            }
+        } else {
+            document.getElementById('binIdInput').value = DEFAULT_BIN_ID;
+            document.getElementById('apiKeyInput').value = DEFAULT_API_KEY;
+        }
+    }
+
+    function saveConfig() {
+        const config = {
+            binId: document.getElementById('binIdInput').value,
+            apiKey: document.getElementById('apiKeyInput').value
+        };
+        localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+    }
+
+    // =====================
+    // Users Management
+    // =====================
+    let users = [];
+    let editingIndex = -1;
+
+    function loadUsers() {
+        const stored = localStorage.getItem(USERS_KEY);
+        if (stored) {
+            try {
+                users = JSON.parse(stored);
+                if (!Array.isArray(users)) users = [];
+            } catch (e) { users = []; }
+        }
+        if (users.length === 0) {
+            users = [
+                { username: "RANZX", key: "SuperSecret123", createdAt: new Date().toLocaleString() },
+                { username: "Andi", key: "KeyAndi789", createdAt: new Date().toLocaleString() },
+                { username: "Budi", key: "Gaming99", createdAt: new Date().toLocaleString() },
+                { username: "OwnerPal", key: "PALRYZ2025", createdAt: new Date().toLocaleString() }
+            ];
+            saveUsers();
+        }
+        updateTotal();
+        renderTable();
+    }
+
+    function saveUsers() {
+        localStorage.setItem(USERS_KEY, JSON.stringify(users));
+        updateTotal();
+    }
+
+    function updateTotal() {
+        document.getElementById('totalUsersDisplay').innerHTML = `<span>👥</span><span>Total: ${users.length}</span>`;
+    }
+
+    function generateKey() {
+        const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ0123456789";
+        let key = "";
+        for (let i = 0; i < 10; i++) key += chars.charAt(Math.floor(Math.random() * chars.length));
+        return key;
+    }
+
+    function addUser(username, key) {
+        if (!username || !username.trim()) {
+            showToast('❌ Username harus diisi!', 'error');
+            return false;
+        }
+        username = username.trim();
+        if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+            showToast(`⚠️ Username "${username}" sudah ada!`, 'warning');
+            return false;
+        }
+        let finalKey = key.trim() || generateKey();
+        users.push({ username: username, key: finalKey, createdAt: new Date().toLocaleString() });
+        saveUsers();
+        renderTable();
+        showToast(`✅ ${username} ditambahkan`, 'success');
+        return true;
+    }
+
+    function deleteUser(idx) {
+        let deleted = users[idx];
+        users.splice(idx, 1);
+        saveUsers();
+        renderTable();
+        showToast(`🗑️ "${deleted.username}" dihapus.`, 'warning');
+    }
+
+    function editUser(idx, newUsername, newKey) {
+        if (!newUsername.trim()) {
+            showToast('Username tidak boleh kosong', 'error');
+            return;
+        }
+        let dup = users.some((u, i) => i !== idx && u.username.toLowerCase() === newUsername.trim().toLowerCase());
+        if (dup) {
+            showToast('Username sudah dipakai!', 'error');
+            return;
+        }
+        users[idx].username = newUsername.trim();
+        if (newKey.trim() !== "") users[idx].key = newKey.trim();
+        users[idx].createdAt = new Date().toLocaleString();
+        saveUsers();
+        renderTable();
+        showToast(`✏️ User diupdate`, 'success');
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function(m) {
+            return m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;';
+        });
+    }
+
+    function renderTable(filter = "") {
+        const tbody = document.getElementById('tableBody');
+        let filtered = [...users];
+        let search = filter.toLowerCase().trim();
+        if (search) filtered = users.filter(u => 
+            u.username.toLowerCase().includes(search) || 
+            u.key.toLowerCase().includes(search)
+        );
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="empty-state"><div class="icon">✨</div><p>Tidak ada user ditemukan</p></td></tr>`;
+            return;
+        }
+
+        let html = "";
+        filtered.forEach((user, i) => {
+            let originalIdx = users.findIndex(u => u.username === user.username && u.key === user.key);
+            html += `<tr>
+                <td><strong>${escapeHtml(user.username)}</strong></td>
+                <td><span class="key-cell">${escapeHtml(user.key)}</span> <button class="icon-btn copy-key" data-key="${escapeHtml(user.key)}" data-user="${escapeHtml(user.username)}">📋</button></td>
+                <td class="date-cell">${user.createdAt || '-'}</td>
+                <td class="action-buttons">
+                    <button class="icon-btn edit-btn" data-index="${originalIdx}" data-olduser="${escapeHtml(user.username)}" data-oldkey="${escapeHtml(user.key)}">✏️</button>
+                    <button class="icon-btn delete-btn" data-index="${originalIdx}">🗑️</button>
+                </td>
+            </tr>`;
+        });
+        tbody.innerHTML = html;
+
+        // Event listeners
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', () => deleteUser(parseInt(btn.dataset.index)));
+        });
+
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                editingIndex = parseInt(btn.dataset.index);
+                document.getElementById('editUsername').value = btn.dataset.olduser;
+                document.getElementById('editKey').value = '';
+                document.getElementById('editModal').classList.add('active');
+            });
+        });
+
+        document.querySelectorAll('.copy-key').forEach(btn => {
+            btn.addEventListener('click', () => {
+                navigator.clipboard.writeText(btn.dataset.key);
+                showToast(`🔑 Key disalin!`, 'info');
+            });
+        });
+    }
+
+    // =====================
+    // Export & Sync
+    // =====================
+    function exportForRoblox() {
+        let exportData = { users: {} };
+        users.forEach(u => { exportData.users[u.username] = u.key; });
+        let jsonStr = JSON.stringify(exportData, null, 2);
+        navigator.clipboard.writeText(jsonStr);
+        showToast('📋 JSON tersalin!', 'success');
+        let blob = new Blob([jsonStr], {type: "application/json"});
+        let a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `palryz_users_${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
+
+    async function syncToCloud() {
+        // Save config first
+        saveConfig();
+        
+        let binId = document.getElementById('binIdInput').value.trim();
+        let apiKey = document.getElementById('apiKeyInput').value.trim();
+        
+        if (!binId || !apiKey) {
+            showToast('❌ Bin ID dan API Key diperlukan!', 'error');
+            return;
+        }
+        
+        let dataToSend = { users: {} };
+        users.forEach(u => { dataToSend.users[u.username] = u.key; });
+        
+        const btn = document.getElementById('syncCloudBtn');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Sync...';
+        
+        try {
+            let response = await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'X-Master-Key': apiKey },
+                body: JSON.stringify(dataToSend)
+            });
+            
+            if (response.ok) {
+                showToast('✅ Sync ke JSONBin berhasil!', 'success');
+            } else {
+                const errorData = await response.json();
+                showToast(`❌ Gagal sync: ${errorData.message || response.status}`, 'error');
+            }
+        } catch (e) {
+            showToast('❌ Error: ' + e.message, 'error');
+        }
+        
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+
+    // =====================
+    // Event Listeners
+    // =====================
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initial loading
+        setTimeout(() => {
+            if (checkAuth()) {
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('dashboard').classList.add('active');
+                loadConfig();
+                loadUsers();
+            }
+            hideLoading();
+        }, 1500);
+
+        // Login form
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const errorMsg = document.getElementById('errorMessage');
+
+            btn.classList.add('loading');
+            btn.disabled = true;
+            errorMsg.classList.remove('show');
+
+            setTimeout(() => {
+                if (login(username, password)) {
+                    document.getElementById('loginPage').style.display = 'none';
+                    document.getElementById('dashboard').classList.add('active');
+                    loadConfig();
+                    loadUsers();
+                    showToast('🎉 Selamat datang!', 'success');
+                } else {
+                    errorMsg.classList.add('show');
+                    document.getElementById('loginPassword').value = '';
+                }
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }, 800);
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+
+        // Copy owner number
+        document.getElementById('copyOwnerBtn').addEventListener('click', () => {
+            navigator.clipboard.writeText('+6283117156906');
+            showToast('📞 Nomor disalin!', 'info');
+        });
+
+        // Add user
+        document.getElementById('addUserBtn').addEventListener('click', () => {
+            if (addUser(document.getElementById('newUsername').value, document.getElementById('newKey').value)) {
+                document.getElementById('newUsername').value = '';
+                document.getElementById('newKey').value = '';
+            }
+        });
+
+        // Export
+        document.getElementById('exportJsonBtn').addEventListener('click', exportForRoblox);
+
+        // Refresh
+        document.getElementById('refreshListBtn').addEventListener('click', () => {
+            renderTable(document.getElementById('searchInput').value || '');
+            showToast('🔄 Diperbarui!', 'info');
+        });
+
+        // Sync
+        document.getElementById('syncCloudBtn').addEventListener('click', syncToCloud);
+
+        // Search
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            renderTable(e.target.value);
+        });
+
+        // Auto-save config on input change
+        document.getElementById('binIdInput').addEventListener('change', saveConfig);
+        document.getElementById('apiKeyInput').addEventListener('change', saveConfig);
+
+        // Edit modal
+        document.getElementById('cancelEditBtn').addEventListener('click', () => {
+            document.getElementById('editModal').classList.remove('active');
+            editingIndex = -1;
+        });
+
+        document.getElementById('saveEditBtn').addEventListener('click', () => {
+            if (editingIndex >= 0) {
+                editUser(editingIndex, document.getElementById('editUsername').value, document.getElementById('editKey').value);
+                document.getElementById('editModal').classList.remove('active');
+                editingIndex = -1;
+            }
+        });
+
+        // Close modal on overlay click
+        document.getElementById('editModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('editModal')) {
+                document.getElementById('editModal').classList.remove('active');
+                editingIndex = -1;
+            }
+        });
+
+        // Enter key in add form
+        document.getElementById('newKey').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('addUserBtn').click();
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
